@@ -1,0 +1,5 @@
+DB_NAME=meubanco
+DB_USER=meuusuario
+DB_PASSWORD=minhasenha
+DB_HOST=localhost
+DB_PORT=3306
