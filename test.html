@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Mapa de Postos</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    #map {
+      height: 100vh;
+    }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    // Inicializa o mapa no centro do Brasil (fallback)
+    const mapa = L.map('map').setView([-14.2350, -51.9253], 4);
+
+    // Adiciona o mapa base (OpenStreetMap)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: 'Map data © OpenStreetMap contributors'
+    }).addTo(mapa);
+
+    // Tenta obter a localização do usuário
+    navigator.geolocation.getCurrentPosition(async (position) => {
+      const lat = position.coords.latitude;
+      const lng = position.coords.longitude;
+      const raio = 3000; // raio em metros
+
+      // Move o mapa para a localização do usuário
+      mapa.setView([lat, lng], 15);
+      L.marker([lat, lng]).addTo(mapa).bindPopup('Você está aqui').openPopup();
+
+      try {
+        const response = await fetch(`http://localhost:3000/api/postos-proximos?lat=${lat}&lng=${lng}&raio=${raio}`);
+        const postos = await response.json();
+
+        postos.forEach(posto => {
+          L.marker([posto.latitude, posto.longitude])
+            .addTo(mapa)
+            .bindPopup(`<b>${posto.nome}</b>`);
+        });
+      } catch (error) {
+        console.error('Erro ao buscar postos:', error);
+      }
+    }, (err) => {
+      console.error('Erro ao obter localização:', err);
+      alert('Não foi possível obter sua localização.');
+    });
+  </script>
+</body>
+</html>
