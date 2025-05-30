@@ -11,7 +11,6 @@ exports.create = async (req, res) => {
       return res.status(400).json({ erro: 'Todos os campos são obrigatórios' });
     }
 
-
     const usuario = await Posto.create({ 
       nome, 
       endereco, 
@@ -29,10 +28,8 @@ exports.create = async (req, res) => {
 };
 
 exports.list = async (req, res) => {
-
   console.log('adicao de ajustse')
   try {
-    // 1. Buscar postos com média de avaliações
     const postosComAvaliacoes = await Posto.findAll({
       include: [{
         model: Avaliacao,
@@ -47,16 +44,13 @@ exports.list = async (req, res) => {
       raw: true
     });
 
-    // 2. Coletar IDs dos postos
     const postoIds = postosComAvaliacoes.map(posto => posto.id);
 
-    // 3. Buscar combustíveis para esses postos
     const combustiveis = await PrecoCombustivel.findAll({
       where: { posto_id: postoIds },
       raw: true
     });
 
-    // 4. Agrupar combustíveis por posto_id
     const combustiveisPorPosto = combustiveis.reduce((acc, comb) => {
       const postoId = comb.posto_id;
       acc[postoId] = acc[postoId] || [];
@@ -68,7 +62,6 @@ exports.list = async (req, res) => {
       return acc;
     }, {});
 
-    // 5. Adicionar combustíveis aos postos
     const resultado = postosComAvaliacoes.map(posto => ({
       ...posto,
       combustiveis: combustiveisPorPosto[posto.id] || []
@@ -90,18 +83,6 @@ exports.createNote = async (req, res) => {
       return res.status(400).json({ erro: 'Todos os campos são obrigatórios' });
     }
 
-    // const usuarioExistente = await Usuario.findOne({ where: { id: usuario_id } });
-    
-    // if (!usuarioExistente) {
-    //   return res.status(409).json({ erro: 'Usuario Invalido.' });
-    // }
-
-    // const postoExistente = await Posto.findOne({ where: { id: posto_id } });
-    
-    // if (!postoExistente) {
-    //   return res.status(409).json({ erro: 'Posto Invalido.' });
-    // }
-
     const avaliacao = await Avaliacao.create({ 
       usuario_id, 
       posto_id, 
@@ -117,7 +98,6 @@ exports.createNote = async (req, res) => {
   }
 };
 
-
 exports.devolverNota = async (req, res) => {
   const postos = await Posto.findAll();
 
@@ -125,9 +105,6 @@ exports.devolverNota = async (req, res) => {
 
   res.json(postos);
 };
-
-
-
 
 exports.createCombustivel = async (req, res) => {
   try {
@@ -149,5 +126,33 @@ exports.createCombustivel = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ erro: 'Erro ao criar preço' });
+  }
+};
+
+// ✅ New: Buscar postos próximos via latitude/longitude/raio
+exports.getNearby = async (req, res) => {
+  const { lat, lng, raio } = req.query;
+
+  if (!lat || !lng || !raio) {
+    return res.status(400).json({ erro: 'Latitude, longitude e raio são obrigatórios' });
+  }
+
+  try {
+    const postos = await Posto.findAll({
+      where: Sequelize.where(
+        Sequelize.fn(
+          'ST_Distance_Sphere',
+          Sequelize.literal('point(longitude, latitude)'),
+          Sequelize.literal(`point(${lng}, ${lat})`)
+        ),
+        { [Op.lte]: parseFloat(raio) }
+      ),
+      attributes: ['id', 'nome', 'latitude', 'longitude']
+    });
+
+    res.json(postos);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ erro: 'Erro ao buscar postos próximos' });
   }
 };
