@@ -61,7 +61,7 @@ const criarUsuarioSQL = async () => {
 // Função para buscar postos de combustível em Campina Grande
 const obterPostosCampinaGrande = async () => {
   try {
-    const url = `httpsnominatim.openstreetmap.org/search?q=posto+combustivel+Campina+Grande&format=json&addressdetails=1&limit=50`;
+    const url = `https://nominatim.openstreetmap.org/search?q=posto+combustivel+Campina+Grande&format=json&addressdetails=1&limit=50`;
     const response = await axios.get(url);
     return response.data;
   } catch (error) {
