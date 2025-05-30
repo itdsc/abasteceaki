@@ -28,7 +28,7 @@ exports.create = async (req, res) => {
 };
 
 exports.list = async (req, res) => {
-  console.log('adicao de ajustse')
+  console.log('Adição de Ajustes')
   try {
     const postosComAvaliacoes = await Posto.findAll({
       include: [{
