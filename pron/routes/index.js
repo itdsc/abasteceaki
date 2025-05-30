@@ -10,6 +10,7 @@ router.post('/login', authController.login);
 router.post('/usuarios', usuarioController.create);
 router.post('/posto', postoController.create);
 router.get('/listarPostos', postoController.list);
+router.get('/procurarPostos', postoController.getNearby); //parte que puxa os postos do OSM convertido
 router.post('/avaliar', postoController.createNote);
 router.post('/addcombustivel', postoController.createCombustivel);
 
