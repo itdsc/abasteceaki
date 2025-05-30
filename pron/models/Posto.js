@@ -1,15 +1,16 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database');
+module.exports = (sequelize, DataTypes) => {
+  const Posto = sequelize.define('Posto', {
+    nome: DataTypes.STRING,
+    endereco: DataTypes.STRING,
+    latitude: DataTypes.DOUBLE,
+    longitude: DataTypes.DOUBLE,
+    criado_em: DataTypes.DATE
+  });
 
-const Posto = sequelize.define('Posto', {
-  nome: DataTypes.STRING,
-  endereco: DataTypes.STRING,
-  latitude: DataTypes.STRING,
-  longitude: DataTypes.STRING,
-  criado_em: DataTypes.DATE
-}, {
-  tableName: 'Posto',
-  timestamps: false
-});
+  Posto.associate = (models) => {
+    Posto.hasMany(models.Avaliacao, { foreignKey: 'posto_id' });
+    Posto.hasMany(models.PrecoCombustivel, { foreignKey: 'posto_id' });
+  };
 
-module.exports = Posto;
+  return Posto;
+};
